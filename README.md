@@ -1,7 +1,7 @@
 MFRC522-python
 ==============
 
-A small class to interface with the NFC reader Module MFRC522.
+A small class to interface with the NFC reader Module MFRC522 on the Raspberry Pi.
 
 This is a Python port of the example code for the NFC module MF522-AN, this code is currently incomplete and only support basic identification and card ID reading.
 
