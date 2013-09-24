@@ -3,9 +3,9 @@ MFRC522-python
 
 A small class to interface with the NFC reader Module MFRC522 on the Raspberry Pi.
 
-This is a Python port of the example code for the NFC module MF522-AN, this code is currently incomplete and only support basic identification and card ID reading.
+This is a Python port of the example code for the NFC module MF522-AN.
 
-PreRequisites
+Pre Requisites
 ==============
 
 You will need to install SPI-Py from lthiery from the following address:
@@ -17,7 +17,7 @@ More Info
 
 For more information visit: http://fuenteabierta.teubi.co/
 
-Useage
+Usage
 ==============
 
 Just run the following command:
