@@ -386,8 +386,7 @@ while continue_reading:
     MIFAREReader.MFRC522_Read(0)
     i = 1
     while i < 64:
-	MIFAREReader.MFRC522_Auth(0x60,i,keyA,backData)
-	MIFAREReader.MFRC522_Read(i)
-	i = i + 1
-     
+      MIFAREReader.MFRC522_Auth(0x60,i,keyA,backData)
+      IFAREReader.MFRC522_Read(i)
+      i = i + 1
 
