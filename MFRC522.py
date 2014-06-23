@@ -1,6 +1,7 @@
 import RPi.GPIO as GPIO
 import spi
 import signal
+import time
   
 class MFRC522:
   NRSTPD = 22
@@ -284,30 +285,46 @@ class MFRC522:
     
     if (status == self.MI_OK) and (backLen == 0x18):
       print "Size: " + str(backData[0])
-      return  backData[0]
+      return    backData[0]
     else:
       return 0
   
   def MFRC522_Auth(self, authMode, BlockAddr, Sectorkey, serNum):
     buff = []
+
+    # First byte should be the authMode (A or B)
     buff.append(authMode)
+
+    # Second byte is the trailerBlock (usually 7)
     buff.append(BlockAddr)
+
+    # Now we need to append the authKey which usually is 6 bytes of 0xFF
     i = 0
     while(i < len(Sectorkey)):
       buff.append(Sectorkey[i])
       i = i + 1
     i = 0
-    while(i < len(serNum)):
+
+    # Next we append the first 4 bytes of the UID
+    while(i < 4):
       buff.append(serNum[i])
       i = i +1
+
+    # Now we start the authentication itself
     (status, backData, backLen) = self.MFRC522_ToCard(self.PCD_AUTHENT,buff)
+
+    # Check if an error occurred
     if not(status == self.MI_OK):
       print "AUTH ERROR!!"
     if not (self.Read_MFRC522(self.Status2Reg) & 0x08) != 0:
       print "AUTH ERROR(status2reg & 0x08) != 0"
 
+    # Return the status
     return status
   
+  def MFRC522_StopCrypto1(self):
+    self.ClearBitMask(self.Status2Reg, 0x08)
+
   def MFRC522_Read(self, blockAddr):
     recvData = []
     recvData.append(self.PICC_READ)
@@ -318,8 +335,6 @@ class MFRC522:
     (status, backData, backLen) = self.MFRC522_ToCard(self.PCD_TRANSCEIVE, recvData)
     if not(status == self.MI_OK):
       print "Error while reading!"
- 
-    print "Got data size: "+str(backLen)
     i = 0
     if len(backData) == 16:
       print "Sector "+str(blockAddr)+" "+str(backData)
@@ -333,25 +348,35 @@ class MFRC522:
     buff.append(crc[1])
     (status, backData, backLen) = self.MFRC522_ToCard(self.PCD_TRANSCEIVE, buff)
     if not(status == self.MI_OK) or not(backLen == 4) or not((backData[0] & 0x0F) == 0x0A):
-      status = self.MI_ERR
+        status = self.MI_ERR
     
     print str(backLen)+" backdata &0x0F == 0x0A "+str(backData[0]&0x0F)
     if status == self.MI_OK:
         i = 0
         buf = []
         while i < 16:
-          buf.append(writeData[i])
-          i = i + 1
+            buf.append(writeData[i])
+            i = i + 1
         crc = self.CalulateCRC(buf)
         buf.append(crc[0])
         buf.append(crc[1])
         (status, backData, backLen) = self.MFRC522_ToCard(self.PCD_TRANSCEIVE,buf)
         if not(status == self.MI_OK) or not(backLen == 4) or not((backData[0] & 0x0F) == 0x0A):
-          print "Error while writing"
+            print "Error while writing"
         if status == self.MI_OK:
-          print "Data writen"
-  
-  
+            print "Data written"
+
+  def MFRC522_DumpClassic1K(self, key, uid):
+    i = 0
+    while i < 64:
+        status = self.MFRC522_Auth(self.PICC_AUTHENT1A, i, key, uid)
+        # Check if authenticated
+        if status == self.MI_OK:
+            self.MFRC522_Read(i)
+        else:
+            print "Authentication error"
+        i = i+1
+
   def MFRC522_Init(self):
     GPIO.output(self.NRSTPD, 1)
   
@@ -366,36 +391,3 @@ class MFRC522:
     self.Write_MFRC522(self.TxAutoReg, 0x40)
     self.Write_MFRC522(self.ModeReg, 0x3D)
     self.AntennaOn()
-  
-continue_reading = True
-# Capture SIGINT
-def end_read(signal,frame):
-  global continue_reading
-  print "Ctrl+C captured, ending read."
-  continue_reading = False
-  GPIO.cleanup() # Suggested by Marjan Trutschl
-  
-signal.signal(signal.SIGINT, end_read)
-  
-MIFAREReader = MFRC522()
-  
-while continue_reading:
-  (status,TagType) = MIFAREReader.MFRC522_Request(MIFAREReader.PICC_REQIDL)
-  
-  if status == MIFAREReader.MI_OK:
-    print "Card detected"
-  
-  (status,backData) = MIFAREReader.MFRC522_Anticoll()
-  if status == MIFAREReader.MI_OK:
-    print "Card read UID: "+str(backData[0])+","+str(backData[1])+","+str(backData[2])+","+str(backData[3])+","+str(backData[4])
- 
-    key = [0xFF,0xFF,0xFF,0xFF,0xFF,0xFF]
-  
-    MIFAREReader.MFRC522_SelectTag(backData)
-
-    status = MIFAREReader.MFRC522_Auth(MIFAREReader.PICC_AUTHENT1A, 11, key, backData)
-    if status == MIFAREReader.MI_OK:
-      print "AUTH OK"
-    else:
-      print "AUTH ERROR"
-
