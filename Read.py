@@ -53,4 +53,4 @@ while continue_reading:
             print "Authentication error"
 
         # Make sure to stop scanning for cards
-        continue_reading = false
+        continue_reading = False
