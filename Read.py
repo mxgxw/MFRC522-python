@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf8 -*-
+
 import RPi.GPIO as GPIO
 import MFRC522
 import signal
@@ -53,4 +56,4 @@ while continue_reading:
             print "Authentication error"
 
         # Make sure to stop scanning for cards
-        continue_reading = false
+        continue_reading = False
