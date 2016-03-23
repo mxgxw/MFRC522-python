@@ -4,6 +4,7 @@
 import RPi.GPIO as GPIO
 import MFRC522
 import signal
+import time
 
 continue_reading = True
 
@@ -32,7 +33,8 @@ while continue_reading:
 
     # If a card is found
     if status == MIFAREReader.MI_OK:
-        print "Card detected"
+        localtime = time.asctime( time.localtime(time.time()) )
+        print "Card detected " + localtime
     
     # Get the UID of the card
     (status,uid) = MIFAREReader.MFRC522_Anticoll()
@@ -40,8 +42,9 @@ while continue_reading:
     # If we have the UID, continue
     if status == MIFAREReader.MI_OK:
 
-        # Print UID
-        print "Card read UID: "+str(uid[0])+","+str(uid[1])+","+str(uid[2])+","+str(uid[3])
+        # Print UID - usually 4 to 5 bytes in length.
+        #
+        print "Card read UID: "+str(uid)
     
         # This is the default key for authentication
         key = [0xFF,0xFF,0xFF,0xFF,0xFF,0xFF]
@@ -59,3 +62,4 @@ while continue_reading:
         else:
             print "Authentication error"
 
+        time.sleep(10)
