@@ -373,7 +373,7 @@ class MFRC522:
     if not(status == self.MI_OK) or not(backLen == 4) or not((backData[0] & 0x0F) == 0x0A):
         status = self.MI_ERR
     
-    print str(backLen)+" backdata &0x0F == 0x0A "+str(backData[0]&0x0F)
+    print "%s backdata &0x0F == 0x0A %s" % (backLen, backData[0]&0x0F)
     if status == self.MI_OK:
         i = 0
         buf = []
