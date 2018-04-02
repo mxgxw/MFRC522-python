@@ -12,7 +12,8 @@ This code requires you to have SPI-Py installed from the following repository:
 https://github.com/lthiery/SPI-Py
 
 ## Examples
-This repository includes a couple of examples showing how to read, write, and dump data from a chip. They are thoroughly commented, and should be easy to understand.
+This repository includes a couple of examples showing how to read, write, and dump data 
+from a chip. They are thoroughly commented, and should be easy to understand.
 
 ## Pins
 You can use [this](http://i.imgur.com/y7Fnvhq.png) image for reference.
