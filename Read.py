@@ -5,49 +5,22 @@ import MFRC522
 import os
 import time
 
-lastPausePressed = 0
-lastVolUpPressed = 0
-lastVolDownPressed = 0
-lastTrackNextPressed = 0
-lastTrackPrevPressed = 0
-
-
+buttonDebounceTime = 500
 
 def button_volume_up(channel):
-    global lastVolUpPressed
-    now = int(round(time.time() * 1000))
-    if (now - lastVolUpPressed) > 250:
-        os.system('mpc volume +10') 
-        lastVolUpPressed = int(round(time.time() * 1000))
-
+    os.system('mpc volume +5') 
 
 def button_volume_down(channel):
-    global lastVolDownPressed
-    now = int(round(time.time() * 1000))
-    if (now - lastVolDownPressed) > 250:
-        os.system('mpc volume -10') 
-        lastVolDownPressed = int(round(time.time() * 1000))
+    os.system('mpc volume -5') 
 
 def button_pause(channel):
-    global lastPausePressed
-    now = int(round(time.time() * 1000))
-    if (now - lastPausePressed) > 250:
-        os.system('mpc toggle') 
-        lastPausePressed = int(round(time.time() * 1000))
+    os.system('mpc toggle') 
 
 def button_track_next(channel):
-    global lastTrackNextPressed
-    now = int(round(time.time() * 1000))
-    if (now - lastTrackNextPressed) > 250:
-        os.system('mpc next') 
-        lastTrackNextPressed = int(round(time.time() * 1000))
+    os.system('mpc next') 
 
 def button_track_prev(channel):
-    global lastTrackPrevPressed
-    now = int(round(time.time() * 1000))
-    if (now - lastTrackPrevPressed) > 250:
-        os.system('mpc prev') 
-        lastTrackPrevPressed = int(round(time.time() * 1000))
+    os.system('mpc prev') 
 
 GPIO.setmode(GPIO.BOARD) 
 
@@ -63,11 +36,11 @@ GPIO.setup(BUTTON_PAUSE, GPIO.IN,  pull_up_down=GPIO.PUD_UP)
 GPIO.setup(BUTTON_TRACK_PREV, GPIO.IN,  pull_up_down=GPIO.PUD_UP)
 GPIO.setup(BUTTON_TRACK_NEXT, GPIO.IN,  pull_up_down=GPIO.PUD_UP)
 
-GPIO.add_event_detect(BUTTON_VOLUME_UP,GPIO.FALLING,callback=button_volume_up)
-GPIO.add_event_detect(BUTTON_VOLUME_DOWN,GPIO.FALLING,callback=button_volume_down)
-GPIO.add_event_detect(BUTTON_PAUSE,GPIO.FALLING,callback=button_pause)
-GPIO.add_event_detect(BUTTON_TRACK_NEXT,GPIO.FALLING,callback=button_track_next)
-GPIO.add_event_detect(BUTTON_TRACK_PREV,GPIO.FALLING,callback=button_track_prev)
+GPIO.add_event_detect(BUTTON_VOLUME_UP,GPIO.FALLING,callback=button_volume_up,bouncetime=buttonDebounceTime) 
+GPIO.add_event_detect(BUTTON_VOLUME_DOWN,GPIO.FALLING,callback=button_volume_down,bouncetime=buttonDebounceTime)
+GPIO.add_event_detect(BUTTON_PAUSE,GPIO.FALLING,callback=button_pause,bouncetime=buttonDebounceTime)
+GPIO.add_event_detect(BUTTON_TRACK_NEXT,GPIO.FALLING,callback=button_track_next,bouncetime=buttonDebounceTime)
+GPIO.add_event_detect(BUTTON_TRACK_PREV,GPIO.FALLING,callback=button_track_prev,bouncetime=buttonDebounceTime)
 
 
 
