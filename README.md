@@ -8,8 +8,10 @@ It might not work as intended on more recent Raspberry Pi devices. You might wan
 take a look to the open pull-requests and forks to see other implementations and bug-fixes.
 
 ## Requirements
-This code requires you to have SPI-Py installed from the following repository:
+1. This code requires you to have SPI-Py installed from the following repository:
 https://github.com/lthiery/SPI-Py
+
+2. Python [***version 2*** is necessary.](https://www.python.org/downloads/)
 
 ## Examples
 This repository includes a couple of examples showing how to read, write, and dump data from a chip. They are thoroughly commented, and should be easy to understand.
