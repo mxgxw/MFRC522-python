@@ -142,6 +142,9 @@ class MFRC522:
     self.Write_MFRC522(self.ModeReg, 0x3D)
     self.AntennaOn()
 
+  def __del__(self):
+      GPIO.cleanup([self.NRSTPD])
+
   def MFRC522_Reset(self):
     self.Write_MFRC522(self.CommandReg, self.PCD_RESETPHASE)
 
