@@ -21,7 +21,6 @@
 #    along with MFRC522-Python.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import RPi.GPIO as GPIO
 import MFRC522
 import signal
 
@@ -32,7 +31,6 @@ def end_read(signal,frame):
     global continue_reading
     print "Ctrl+C captured, ending read."
     continue_reading = False
-    GPIO.cleanup()
 
 # Hook the SIGINT
 signal.signal(signal.SIGINT, end_read)
@@ -42,14 +40,14 @@ MIFAREReader = MFRC522.MFRC522()
 
 # This loop keeps checking for chips. If one is near it will get the UID and authenticate
 while continue_reading:
-    
-    # Scan for cards    
+
+    # Scan for cards
     (status,TagType) = MIFAREReader.MFRC522_Request(MIFAREReader.PICC_REQIDL)
 
     # If a card is found
     if status == MIFAREReader.MI_OK:
-        print "Card detected"
-    
+        print("Card detected")
+
     # Get the UID of the card
     (status,uid) = MIFAREReader.MFRC522_Anticoll()
 
@@ -57,17 +55,17 @@ while continue_reading:
     if status == MIFAREReader.MI_OK:
 
         # Print UID
-        print "Card read UID: %s,%s,%s,%s" % (uid[0], uid[1], uid[2], uid[3])
-    
+        print("Card read UID: %s,%s,%s,%s" % (uid[0], uid[1], uid[2], uid[3]))
+
         # This is the default key for authentication
         key = [0xFF,0xFF,0xFF,0xFF,0xFF,0xFF]
-        
+
         # Select the scanned tag
         MIFAREReader.MFRC522_SelectTag(uid)
 
         # Authenticate
         status = MIFAREReader.MFRC522_Auth(MIFAREReader.PICC_AUTHENT1A, 8, key, uid)
-        print "\n"
+        print("\n")
 
         # Check if authenticated
         if status == MIFAREReader.MI_OK:
@@ -79,34 +77,34 @@ while continue_reading:
             for x in range(0,16):
                 data.append(0xFF)
 
-            print "Sector 8 looked like this:"
+            print("Sector 8 looked like this:")
             # Read block 8
             MIFAREReader.MFRC522_Read(8)
-            print "\n"
+            print("\n")
 
-            print "Sector 8 will now be filled with 0xFF:"
+            print("Sector 8 will now be filled with 0xFF:")
             # Write the data
             MIFAREReader.MFRC522_Write(8, data)
-            print "\n"
+            print
 
-            print "It now looks like this:"
+            print("It now looks like this:")
             # Check to see if it was written
             MIFAREReader.MFRC522_Read(8)
-            print "\n"
+            print("\n")
 
             data = []
             # Fill the data with 0x00
             for x in range(0,16):
                 data.append(0x00)
 
-            print "Now we fill it with 0x00:"
+            print("Now we fill it with 0x00:")
             MIFAREReader.MFRC522_Write(8, data)
-            print "\n"
+            print("\n")
 
-            print "It is now empty:"
+            print("It is now empty:")
             # Check to see if it was written
             MIFAREReader.MFRC522_Read(8)
-            print "\n"
+            print("\n")
 
             # Stop
             MIFAREReader.MFRC522_StopCrypto1()
