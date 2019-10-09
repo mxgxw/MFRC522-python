@@ -1,5 +1,4 @@
 #!/usr/bin/python
-import RPi.GPIO as gpio
 import RPi.GPIO as GPIO
 import MFRC522
 import os
@@ -30,38 +29,57 @@ BUTTON_PAUSE        = 15
 BUTTON_TRACK_PREV   = 11
 BUTTON_TRACK_NEXT   = 13
 
-GPIO.setup(BUTTON_VOLUME_UP, GPIO.IN,  pull_up_down=GPIO.PUD_UP)
-GPIO.setup(BUTTON_VOLUME_DOWN, GPIO.IN,  pull_up_down=GPIO.PUD_UP)
-GPIO.setup(BUTTON_PAUSE, GPIO.IN,  pull_up_down=GPIO.PUD_UP)
-GPIO.setup(BUTTON_TRACK_PREV, GPIO.IN,  pull_up_down=GPIO.PUD_UP)
-GPIO.setup(BUTTON_TRACK_NEXT, GPIO.IN,  pull_up_down=GPIO.PUD_UP)
+GPIO.setup(BUTTON_VOLUME_UP, GPIO.IN,  pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(BUTTON_VOLUME_DOWN, GPIO.IN,  pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(BUTTON_PAUSE, GPIO.IN,  pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(BUTTON_TRACK_PREV, GPIO.IN,  pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(BUTTON_TRACK_NEXT, GPIO.IN,  pull_up_down=GPIO.PUD_DOWN)
 
-GPIO.add_event_detect(BUTTON_VOLUME_UP,GPIO.FALLING,callback=button_volume_up,bouncetime=buttonDebounceTime) 
-GPIO.add_event_detect(BUTTON_VOLUME_DOWN,GPIO.FALLING,callback=button_volume_down,bouncetime=buttonDebounceTime)
-GPIO.add_event_detect(BUTTON_PAUSE,GPIO.FALLING,callback=button_pause,bouncetime=buttonDebounceTime)
-GPIO.add_event_detect(BUTTON_TRACK_NEXT,GPIO.FALLING,callback=button_track_next,bouncetime=buttonDebounceTime)
-GPIO.add_event_detect(BUTTON_TRACK_PREV,GPIO.FALLING,callback=button_track_prev,bouncetime=buttonDebounceTime)
+GPIO.add_event_detect(BUTTON_VOLUME_UP,GPIO.RISING,callback=button_volume_up,bouncetime=buttonDebounceTime) 
+GPIO.add_event_detect(BUTTON_VOLUME_DOWN,GPIO.RISING,callback=button_volume_down,bouncetime=buttonDebounceTime)
+GPIO.add_event_detect(BUTTON_PAUSE,GPIO.RISING,callback=button_pause,bouncetime=buttonDebounceTime)
+GPIO.add_event_detect(BUTTON_TRACK_NEXT,GPIO.RISING,callback=button_track_next,bouncetime=buttonDebounceTime)
+GPIO.add_event_detect(BUTTON_TRACK_PREV,GPIO.RISING,callback=button_track_prev,bouncetime=buttonDebounceTime)
 
-
+lastCardUID = None
 
 def read_card(reader, key):
     # Scan for cards    
     (status, tag_type) = reader.MFRC522_Request(reader.PICC_REQIDL)
+    global lastCardUID
+
 
     # If a card is found
     if status != reader.MI_OK:
-        return None
-    print "Card detected"
+        (status, tag_type) = reader.MFRC522_Request(reader.PICC_REQIDL)
+        if status != reader.MI_OK:
+            if lastCardUID != None:
+                print ("Card removed " + lastCardUID)
+            lastCardUID = None
+            print ("No Card")
+            return None
+    print ("Card detected")
             
     # Get the UID of the card
     (status, uid) = reader.MFRC522_Anticoll()
+    lastCardUID = ""
+
+    first = True
+
+    for token in uid:
+        if not first: 
+            lastCardUID += ":"
+        first = False
+        lastCardUID += str(token)
 
     # If we have the UID, continue
     if status != reader.MI_OK:
+        print ("Error during card read.")
         return None
 
     # Print UID
-    print "Card read UID: %s,%s,%s,%s" % (uid[0], uid[1], uid[2], uid[3])
+    print ("Card read UID: " + lastCardUID)
+
     # Select the scanned tag
     reader.MFRC522_SelectTag(uid)
 
@@ -70,28 +88,49 @@ def read_card(reader, key):
 
     # Check if authenticated
     if status != reader.MI_OK:
-        print "Authentication error"
+        print ("Authentication error")
         return None
-    data = reader.MFRC522_Read(4)
 
+    if os.path.isfile("./writeCard"):
+        print ("write file found")
+        writeData = []
+
+        # Fill the data with 0xFF
+        for x in range(0,16):
+            writeData.append(x)
+
+        print "Sector 4 will now be filled with data"
+        # Write the data
+        reader.MFRC522_Write(4, writeData)
+        
+        writeData = []
+        # Fill the data with 0xFF
+        for x in range(16,32):
+            writeData.append(x)
+        
+        reader.MFRC522_Write(5, writeData)
+        os.remove("./writeCard")
+
+    data4 = reader.MFRC522_Read(4)
+    data5 = reader.MFRC522_Read(5)
     reader.MFRC522_StopCrypto1()
-    return data
+    return data4
 
 def main():
     try:
         reader = MFRC522.MFRC522()
 
         # Welcome message
-        print "Welcome to the MFRC522 data read example"
-        print "Press Ctrl-C to stop."
+        print ("Welcome to the MFRC522 data read example")
+        print ("Press Ctrl-C to stop.")
 
         # This is the default key for authentication
         key = [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
         # This loop keeps checking for chips. If one is near it will get the UID and authenticate
         while True:
+            time.sleep(1)
             data = read_card(reader, key) 
             if data is not None:
-                print data          
                 if data[5] != 0:
                     os.system("mpc stop")
                     os.system("mpc clear")
@@ -104,9 +143,8 @@ def main():
                     os.system('mpc play')
     
     except KeyboardInterrupt:
-        print "Ctrl+C captured, ending read."
+        print ("Ctrl+C captured, ending read.")
     finally:
-        gpio.cleanup()
         GPIO.cleanup()
 
 
