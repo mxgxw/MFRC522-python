@@ -56,21 +56,21 @@ def read_card(reader, key):
             if lastCardUID != None:
                 print ("Card removed " + lastCardUID)
             lastCardUID = None
-            print ("No Card")
             return None
     print ("Card detected")
             
     # Get the UID of the card
     (status, uid) = reader.MFRC522_Anticoll()
-    lastCardUID = ""
+    currentCard = ""
 
     first = True
 
     for token in uid:
         if not first: 
-            lastCardUID += ":"
+            currentCard += ":"
         first = False
-        lastCardUID += str(token)
+        currentCard += str(token)
+
 
     # If we have the UID, continue
     if status != reader.MI_OK:
@@ -78,7 +78,10 @@ def read_card(reader, key):
         return None
 
     # Print UID
-    print ("Card read UID: " + lastCardUID)
+    print ("Card read UID: " + currentCard)
+
+    if currentCard == lastCardUID:
+        return None
 
     # Select the scanned tag
     reader.MFRC522_SelectTag(uid)
@@ -91,30 +94,48 @@ def read_card(reader, key):
         print ("Authentication error")
         return None
 
+    lastCardUID = currentCard
+
     if os.path.isfile("./writeCard"):
         print ("write file found")
-        writeData = []
+        fobj = open("./writeCard")
+        playlist = fobj.readline().strip()
+        fobj.close()
+        
+        print ("Playlist name is " + playlist)
+
+        writeData = [int("0x13", 0), int("0x37", 0), int("0xb3", 0), int("0x47", 0)]
+
+        writeData.append(2) # Version 2
+        writeData.append(0) # For version it was the  folder
+        writeData.append(0) # Random value
 
         # Fill the data with 0xFF
-        for x in range(0,16):
-            writeData.append(x)
-
-        print "Sector 4 will now be filled with data"
+        for x in range(7,16):
+            writeData.append(0)
+        
+        print "Sector 4 will now be filled with data. Length = " + str(len(writeData)) + " Data: " + str(writeData)
         # Write the data
         reader.MFRC522_Write(4, writeData)
         
         writeData = []
         # Fill the data with 0xFF
-        for x in range(16,32):
-            writeData.append(x)
+        for s in playlist:
+            writeData.append(ord(s))
+            
+        nameLength = len(playlist)
+        print ("The playlistname " + playlist + " has a length of " + str(nameLength))
+        for x in  range(nameLength, 16):
+            writeData.append(0)
         
+        print "Sector 5 will now be filled with data. Length = " + str(len(writeData)) + " Data: " + str(writeData)
         reader.MFRC522_Write(5, writeData)
         os.remove("./writeCard")
 
     data4 = reader.MFRC522_Read(4)
     data5 = reader.MFRC522_Read(5)
     reader.MFRC522_StopCrypto1()
-    return data4
+    return (data4, data5)
 
 def main():
     try:
@@ -129,18 +150,33 @@ def main():
         # This loop keeps checking for chips. If one is near it will get the UID and authenticate
         while True:
             time.sleep(1)
-            data = read_card(reader, key) 
-            if data is not None:
-                if data[5] != 0:
+            cardData = read_card(reader, key) 
+            if cardData is not None:
+                (data4, data5) = cardData
+                random = data4[6] == 1 
+                if data4[4] == 1:
                     os.system("mpc stop")
                     os.system("mpc clear")
-                    if data[6] == 1:
-                        os.system('mpc random on')
-                    else:
-                        os.system('mpc random off')
-                    cmd = 'mpc load ' + "{:02d}".format(data[5]) 
-                    os.system(cmd)
-                    os.system('mpc play')
+                    cmd = 'mpc load ' + "{:02d}".format(data4[5]) 
+                    
+                if data4[4] == 2:
+                    playlistname = ""
+                    for c in data5:
+                        if c != 0:
+                            playlistname += chr(c)
+                    os.system("mpc stop")
+                    os.system("mpc clear")
+                    
+                    cmd = 'mpc load ' + playlistname
+                
+                os.system(cmd)
+                if random:
+                    os.system('mpc random on')
+                else:
+                    os.system('mpc random off')
+                os.system('mpc play')
+                
+                
     
     except KeyboardInterrupt:
         print ("Ctrl+C captured, ending read.")
