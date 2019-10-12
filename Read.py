@@ -7,19 +7,29 @@ import time
 buttonDebounceTime = 500
 
 def button_volume_up(channel):
-    os.system('mpc volume +5') 
+    cmd = 'mpc volume +5'
+    print ("Command will be send: " + cmd)
+    os.system(cmd) 
 
 def button_volume_down(channel):
-    os.system('mpc volume -5') 
+    cmd = 'mpc volume -5'
+    print ("Command will be send: " + cmd)
+    os.system(cmd) 
 
 def button_pause(channel):
-    os.system('mpc toggle') 
+    cmd ='mpc toggle'
+    print ("Command will be send: " + cmd)
+    os.system(cmd)
 
 def button_track_next(channel):
-    os.system('mpc next') 
+    cmd ='mpc next'
+    print ("Command will be send: " + cmd)
+    os.system(cmd)
 
 def button_track_prev(channel):
-    os.system('mpc prev') 
+    cmd ='mpc prev'
+    print ("Command will be send: " + cmd)
+    os.system(cmd)
 
 GPIO.setmode(GPIO.BOARD) 
 
@@ -75,6 +85,7 @@ def read_card(reader, key):
     # If we have the UID, continue
     if status != reader.MI_OK:
         print ("Error during card read.")
+        lastCardUID = None
         return None
 
     # Print UID
@@ -114,7 +125,7 @@ def read_card(reader, key):
         for x in range(7,16):
             writeData.append(0)
         
-        print "Sector 4 will now be filled with data. Length = " + str(len(writeData)) + " Data: " + str(writeData)
+        print ("Sector 4 will now be filled with data. Length = " + str(len(writeData)) + " Data: " + str(writeData))
         # Write the data
         reader.MFRC522_Write(4, writeData)
         
@@ -128,13 +139,18 @@ def read_card(reader, key):
         for x in  range(nameLength, 16):
             writeData.append(0)
         
-        print "Sector 5 will now be filled with data. Length = " + str(len(writeData)) + " Data: " + str(writeData)
+        print ("Sector 5 will now be filled with data. Length = " + str(len(writeData)) + " Data: " + str(writeData))
         reader.MFRC522_Write(5, writeData)
         os.remove("./writeCard")
 
     data4 = reader.MFRC522_Read(4)
-    data5 = reader.MFRC522_Read(5)
+    if data4 != None and data4[4] != 1:
+        data5 = reader.MFRC522_Read(5)
+    else:
+        data5 = None
     reader.MFRC522_StopCrypto1()
+    if data4 == None:
+        return None
     return (data4, data5)
 
 def main():
@@ -151,7 +167,7 @@ def main():
         while True:
             time.sleep(1)
             cardData = read_card(reader, key) 
-            if cardData is not None:
+            if cardData != None:
                 (data4, data5) = cardData
                 random = data4[6] == 1 
                 if data4[4] == 1:
@@ -159,15 +175,18 @@ def main():
                     os.system("mpc clear")
                     cmd = 'mpc load ' + "{:02d}".format(data4[5]) 
                     
-                if data4[4] == 2:
-                    playlistname = ""
-                    for c in data5:
-                        if c != 0:
-                            playlistname += chr(c)
-                    os.system("mpc stop")
-                    os.system("mpc clear")
-                    
-                    cmd = 'mpc load ' + playlistname
+                if data4[4] == 2 :
+                    if data5 == None:
+                        lastCardUID = None
+                    else :
+                        playlistname = ""
+                        for c in data5:
+                            if c != 0:
+                                playlistname += chr(c)
+                        os.system("mpc stop")
+                        os.system("mpc clear")
+                        
+                        cmd = 'mpc load ' + playlistname
                 
                 os.system(cmd)
                 if random:
