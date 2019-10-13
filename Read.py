@@ -39,17 +39,17 @@ BUTTON_PAUSE        = 15
 BUTTON_TRACK_PREV   = 11
 BUTTON_TRACK_NEXT   = 13
 
-GPIO.setup(BUTTON_VOLUME_UP, GPIO.IN,  pull_up_down=GPIO.PUD_DOWN)
-GPIO.setup(BUTTON_VOLUME_DOWN, GPIO.IN,  pull_up_down=GPIO.PUD_DOWN)
-GPIO.setup(BUTTON_PAUSE, GPIO.IN,  pull_up_down=GPIO.PUD_DOWN)
-GPIO.setup(BUTTON_TRACK_PREV, GPIO.IN,  pull_up_down=GPIO.PUD_DOWN)
-GPIO.setup(BUTTON_TRACK_NEXT, GPIO.IN,  pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(BUTTON_VOLUME_UP, GPIO.IN,  pull_up_down=GPIO.PUD_UP)
+GPIO.setup(BUTTON_VOLUME_DOWN, GPIO.IN,  pull_up_down=GPIO.PUD_UP)
+GPIO.setup(BUTTON_PAUSE, GPIO.IN,  pull_up_down=GPIO.PUD_UP)
+GPIO.setup(BUTTON_TRACK_PREV, GPIO.IN,  pull_up_down=GPIO.PUD_UP)
+GPIO.setup(BUTTON_TRACK_NEXT, GPIO.IN,  pull_up_down=GPIO.PUD_UP)
 
-GPIO.add_event_detect(BUTTON_VOLUME_UP,GPIO.RISING,callback=button_volume_up,bouncetime=buttonDebounceTime) 
-GPIO.add_event_detect(BUTTON_VOLUME_DOWN,GPIO.RISING,callback=button_volume_down,bouncetime=buttonDebounceTime)
-GPIO.add_event_detect(BUTTON_PAUSE,GPIO.RISING,callback=button_pause,bouncetime=buttonDebounceTime)
-GPIO.add_event_detect(BUTTON_TRACK_NEXT,GPIO.RISING,callback=button_track_next,bouncetime=buttonDebounceTime)
-GPIO.add_event_detect(BUTTON_TRACK_PREV,GPIO.RISING,callback=button_track_prev,bouncetime=buttonDebounceTime)
+GPIO.add_event_detect(BUTTON_VOLUME_UP,GPIO.FALLING,callback=button_volume_up,bouncetime=buttonDebounceTime) 
+GPIO.add_event_detect(BUTTON_VOLUME_DOWN,GPIO.FALLING,callback=button_volume_down,bouncetime=buttonDebounceTime)
+GPIO.add_event_detect(BUTTON_PAUSE,GPIO.FALLING,callback=button_pause,bouncetime=buttonDebounceTime)
+GPIO.add_event_detect(BUTTON_TRACK_NEXT,GPIO.FALLING,callback=button_track_next,bouncetime=buttonDebounceTime)
+GPIO.add_event_detect(BUTTON_TRACK_PREV,GPIO.FALLING,callback=button_track_prev,bouncetime=buttonDebounceTime)
 
 lastCardUID = None
 
@@ -185,7 +185,6 @@ def main():
                                 playlistname += chr(c)
                         os.system("mpc stop")
                         os.system("mpc clear")
-                        
                         cmd = 'mpc load ' + playlistname
                 
                 os.system(cmd)
