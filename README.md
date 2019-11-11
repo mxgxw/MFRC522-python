@@ -12,11 +12,11 @@ https://github.com/lthiery/SPI-Py
 
 To install SPI you have to use a special branch version 8cce26b9ee6e69eb041e9d5665944b88688fca68
 
-'''
+```
 git clone https://github.com/lthiery/SPI-Py.git
 git checkout -b 8cce26b9ee6e69eb041e9d5665944b88688fca68
 sudo python setup.py install
-'''
+```
 
 ## Examples
 This repository includes a couple of examples showing how to read, write, and dump data from a chip. They are thoroughly commented, and should be easy to understand.
