@@ -67,7 +67,6 @@ def read_card(reader, key):
                 print ("Card removed " + lastCardUID)
             lastCardUID = None
             return None
-    print ("Card detected")
             
     # Get the UID of the card
     (status, uid) = reader.MFRC522_Anticoll()
@@ -88,11 +87,13 @@ def read_card(reader, key):
         lastCardUID = None
         return None
 
-    # Print UID
-    print ("Card read UID: " + currentCard)
 
     if currentCard == lastCardUID:
         return None
+
+    # Print UID
+    print ("Card read UID: " + currentCard)
+    print ("Card detected")
 
     # Select the scanned tag
     reader.MFRC522_SelectTag(uid)
@@ -153,7 +154,25 @@ def read_card(reader, key):
         return None
     return (data4, data5)
 
+
+def readVersion1Data(dataBlock):
+
+    # Datablock idx 4 = Version
+    # Datablock idx 5 = Folder
+    # Datablock idx 6 = Playmode: 1: Random, 2: , 3: ,4: single file
+
+    os.system("mpc clear")
+    
+    if dataBlock[6] == 4:
+        playlistName = "01-{:03d}".format(dataBlock[7]) 
+    else:
+        playlistName = "{:02d}".format(dataBlock[5]) 
+    cmd = 'mpc load ' + playlistName
+
+    os.system(cmd)
+
 def main():
+    global lastCardUID
     try:
         reader = MFRC522.MFRC522()
 
@@ -165,15 +184,13 @@ def main():
         key = [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
         # This loop keeps checking for chips. If one is near it will get the UID and authenticate
         while True:
-            time.sleep(1)
+            time.sleep(0.1)
             cardData = read_card(reader, key) 
             if cardData != None:
                 (data4, data5) = cardData
-                random = data4[6] == 1 
-                if data4[4] == 1:
-                    os.system("mpc stop")
-                    os.system("mpc clear")
-                    cmd = 'mpc load ' + "{:02d}".format(data4[5]) 
+                random = data4[6] == 1 #Random bit
+                if data4[4] == 1: # Version 1
+                    readVersion1Data(data4)
                     
                 if data4[4] == 2 :
                     if data5 == None:
@@ -186,8 +203,8 @@ def main():
                         os.system("mpc stop")
                         os.system("mpc clear")
                         cmd = 'mpc load ' + playlistname
+                        os.system(cmd)
                 
-                os.system(cmd)
                 if random:
                     os.system('mpc random on')
                 else:
