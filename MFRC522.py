@@ -25,6 +25,8 @@ import RPi.GPIO as GPIO
 import spi
 import signal
 import time
+
+spidev = 0
   
 class MFRC522:
   NRSTPD = 22
@@ -125,13 +127,12 @@ class MFRC522:
   Reserved33      = 0x3E
   Reserved34      = 0x3F
 
-  spidev = 0
-    
-  serNum = []
+  serNum = [] 
   
-  def __init__(self, dev='/dev/spidev0.0', spd=1000000):
-    global spidev
+  def __init__(self, dev='/dev/spidev0.0', spd=500000):
+    global spidev 
     spidev = spi.openSPI(device=dev,speed=spd)
+
     GPIO.setmode(GPIO.BOARD)
     GPIO.setup(self.NRSTPD, GPIO.OUT)
     GPIO.output(self.NRSTPD, 1)
@@ -152,7 +153,7 @@ class MFRC522:
     self.Write_MFRC522(reg, tmp | mask)
     
   def ClearBitMask(self, reg, mask):
-    tmp = self.Read_MFRC522(reg);
+    tmp = self.Read_MFRC522(reg)
     self.Write_MFRC522(reg, tmp & (~mask))
   
   def AntennaOn(self):
