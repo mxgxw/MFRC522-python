@@ -3,8 +3,29 @@ import RPi.GPIO as GPIO
 import MFRC522
 import os
 import time
+from subprocess import Popen, PIPE
 
-buttonDebounceTime = 500
+WRITE_CARD_FILE = "/home/pi/radio/conf/writeCard"
+
+buttonDebounceTime = 250
+
+def isPlaying():
+    playing = False
+    p = Popen(["mpc", "status"], stdout=PIPE, bufsize=1)
+    while p.poll() is None:
+        output = p.stdout.readline()
+        if 'playing' in output:
+            playing = True
+    return playing
+
+def isRadio():
+    radio = False
+    p = Popen(["mpc", "status"], stdout=PIPE, bufsize=1)
+    while p.poll() is None:
+        output = p.stdout.readline()
+        if 'Radio' in output or 'Bremen Vier':
+            radio = True
+    return radio
 
 def button_volume_up(channel):
     cmd = 'mpc volume +5'
@@ -17,7 +38,18 @@ def button_volume_down(channel):
     os.system(cmd) 
 
 def button_pause(channel):
-    cmd ='mpc toggle'
+    if isRadio():
+        if isPlaying():
+            print ('The system is currently playing')
+            playing = False
+            cmd = 'mpc stop'
+        else:
+            print ('The system is not playing')
+            playing = True
+            cmd = 'mpc play'
+    else:
+        cmd = 'mpc toggle'
+
     print ("Command will be send: " + cmd)
     os.system(cmd)
 
@@ -107,9 +139,9 @@ def read_card(reader, key):
 
     lastCardUID = currentCard
 
-    if os.path.isfile("./writeCard"):
-        print ("write file found")
-        fobj = open("./writeCard")
+    if os.path.isfile(WRITE_CARD_FILE):
+        print (WRITE_CARD_FILE)
+        fobj = open(WRITE_CARD_FILE)
         playlist = fobj.readline().strip()
         fobj.close()
         
@@ -141,7 +173,7 @@ def read_card(reader, key):
         
         print ("Sector 5 will now be filled with data. Length = " + str(len(writeData)) + " Data: " + str(writeData))
         reader.MFRC522_Write(5, writeData)
-        os.remove("./writeCard")
+        os.remove(WRITE_CARD_FILE)
 
     data4 = reader.MFRC522_Read(4)
     if data4 != None and data4[4] != 1:
@@ -154,6 +186,12 @@ def read_card(reader, key):
     return (data4, data5)
 
 def main():
+    if not isPlaying():
+        os.system('mpc clear')
+        os.system('mpc volume 30')
+        os.system('mpc insert ".system/Leg eine Karte auf.mp3"')
+        os.system('mpc play')
+
     try:
         reader = MFRC522.MFRC522()
 
@@ -165,7 +203,7 @@ def main():
         key = [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
         # This loop keeps checking for chips. If one is near it will get the UID and authenticate
         while True:
-            time.sleep(1)
+            time.sleep(0.1)
             cardData = read_card(reader, key) 
             if cardData != None:
                 (data4, data5) = cardData
@@ -186,8 +224,8 @@ def main():
                         os.system("mpc stop")
                         os.system("mpc clear")
                         cmd = 'mpc load ' + playlistname
+                        os.system(cmd)
                 
-                os.system(cmd)
                 if random:
                     os.system('mpc random on')
                 else:
