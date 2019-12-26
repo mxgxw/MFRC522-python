@@ -7,39 +7,34 @@ from subprocess import Popen, PIPE
 
 WRITE_CARD_FILE = "/home/pi/radio/conf/writeCard"
 
-buttonDebounceTime = 250
+buttonDebounceTime = 350
 
 def isPlaying():
+    radio = False
     playing = False
     p = Popen(["mpc", "status"], stdout=PIPE, bufsize=1)
     while p.poll() is None:
         output = p.stdout.readline()
+        if 'Radio' in output or 'Bremen Vier' in output:
+            radio = True
         if 'playing' in output:
             playing = True
-    return playing
-
-def isRadio():
-    radio = False
-    p = Popen(["mpc", "status"], stdout=PIPE, bufsize=1)
-    while p.poll() is None:
-        output = p.stdout.readline()
-        if 'Radio' in output or 'Bremen Vier':
-            radio = True
-    return radio
+    return (playing, radio)
 
 def button_volume_up(channel):
-    cmd = 'mpc volume +5'
+    cmd = 'mpc volume +2'
     print ("Command will be send: " + cmd)
     os.system(cmd) 
 
 def button_volume_down(channel):
-    cmd = 'mpc volume -5'
+    cmd = 'mpc volume -2'
     print ("Command will be send: " + cmd)
     os.system(cmd) 
 
 def button_pause(channel):
-    if isRadio():
-        if isPlaying():
+    playing, radioOn,  = isPlaying()
+    if radioOn:
+        if playing:
             print ('The system is currently playing')
             playing = False
             cmd = 'mpc stop'
@@ -59,7 +54,7 @@ def button_track_next(channel):
     os.system(cmd)
 
 def button_track_prev(channel):
-    cmd ='mpc prev'
+    cmd ='mpc cdprev'
     print ("Command will be send: " + cmd)
     os.system(cmd)
 
@@ -186,6 +181,7 @@ def read_card(reader, key):
     return (data4, data5)
 
 def main():
+    time.sleep(2)
     if not isPlaying():
         os.system('mpc clear')
         os.system('mpc volume 30')
@@ -212,6 +208,7 @@ def main():
                     os.system("mpc stop")
                     os.system("mpc clear")
                     cmd = 'mpc load ' + "{:02d}".format(data4[5]) 
+                    os.system(cmd)
                     
                 if data4[4] == 2 :
                     if data5 == None:
