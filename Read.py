@@ -10,17 +10,35 @@ from subprocess import STDOUT
 
 WRITE_CARD_FILE = "/home/pi/radio/conf/writeCard"
 
-buttonDebounceTime = 350
+buttonDebounceTime = 500
+
+
+pause_pressedtime = 0
+
 
 def button_volume_up(channel):
-    MpdState.changeVolume(+2)
-
-def button_volume_down(channel):
-    MpdState.changeVolume(-2)
-
-def button_pause(channel):
-    playing, radioOn  = MpdState.isPlaying()
+    MpdState.changeVolume(+3)
     
+def button_volume_down(channel):
+    MpdState.changeVolume(-3)
+
+def handle_button_pause(channel):
+    global pause_pressedtime
+    duration = None
+    now = int(round(time.time() * 1000))
+    if not GPIO.input(BUTTON_PAUSE):
+        pause_pressedtime = now 
+        #print("Pause button pressed at " + str(now))
+    else:
+        duration = now - pause_pressedtime
+        print("Button pressed duration: " + str(duration) + "ms" )
+        pause_pressedtime = 0
+
+    if duration == None or duration < 10 or duration > 60000:
+        return
+
+    playing, radioOn  = MpdState.isPlaying()
+
     if playing: 
         if radioOn:
             print ('The system is currently playing')
@@ -28,8 +46,7 @@ def button_pause(channel):
         else:
             MpdState.sendCommand('pause')
     else:
-        print ('The system is not playing')
-        MpdState.play()
+        MpdState.sendCommand('play')
     
 def button_track_next(channel):
     MpdState.sendCommand('next')
@@ -53,7 +70,7 @@ GPIO.setup(BUTTON_TRACK_NEXT, GPIO.IN,  pull_up_down=GPIO.PUD_UP)
 
 GPIO.add_event_detect(BUTTON_VOLUME_UP,GPIO.FALLING,callback=button_volume_up,bouncetime=buttonDebounceTime) 
 GPIO.add_event_detect(BUTTON_VOLUME_DOWN,GPIO.FALLING,callback=button_volume_down,bouncetime=buttonDebounceTime)
-GPIO.add_event_detect(BUTTON_PAUSE,GPIO.FALLING,callback=button_pause,bouncetime=buttonDebounceTime)
+GPIO.add_event_detect(BUTTON_PAUSE,GPIO.BOTH,callback=handle_button_pause,bouncetime=10)
 GPIO.add_event_detect(BUTTON_TRACK_NEXT,GPIO.FALLING,callback=button_track_next,bouncetime=buttonDebounceTime)
 GPIO.add_event_detect(BUTTON_TRACK_PREV,GPIO.FALLING,callback=button_track_prev,bouncetime=buttonDebounceTime)
 
@@ -160,6 +177,8 @@ def read_card(reader, key):
     return (data4, data5)
 
 def main():
+    lastPauseButtonState = 0
+
     time.sleep(2)
     playing, radioOn  = MpdState.isPlaying()
     if not playing:
@@ -176,6 +195,12 @@ def main():
         key = [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
         # This loop keeps checking for chips. If one is near it will get the UID and authenticate
         while True:
+            if not GPIO.input(BUTTON_VOLUME_UP):
+                MpdState.changeVolume(+2)
+
+            if not GPIO.input(BUTTON_VOLUME_DOWN):
+                MpdState.changeVolume(-2)
+
             time.sleep(0.1)
             cardData = read_card(reader, key) 
             if cardData != None:
