@@ -3,61 +3,40 @@ import RPi.GPIO as GPIO
 import MFRC522
 import os
 import time
-from subprocess import Popen, PIPE
+import subprocess
+import MpdState
+
+from subprocess import STDOUT
 
 WRITE_CARD_FILE = "/home/pi/radio/conf/writeCard"
 
 buttonDebounceTime = 350
 
-def isPlaying():
-    radio = False
-    playing = False
-    p = Popen(["mpc", "status"], stdout=PIPE, bufsize=1)
-    while p.poll() is None:
-        output = p.stdout.readline()
-        if 'Radio' in output or 'Bremen Vier' in output:
-            radio = True
-        if 'playing' in output:
-            playing = True
-    return (playing, radio)
-
 def button_volume_up(channel):
-    cmd = 'mpc volume +2'
-    print ("Command will be send: " + cmd)
-    os.system(cmd) 
+    MpdState.changeVolume(+2)
 
 def button_volume_down(channel):
-    cmd = 'mpc volume -2'
-    print ("Command will be send: " + cmd)
-    os.system(cmd) 
+    MpdState.changeVolume(-2)
 
 def button_pause(channel):
-    playing, radioOn,  = isPlaying()
-    if radioOn:
-        if playing:
+    playing, radioOn  = MpdState.isPlaying()
+    
+    if playing: 
+        if radioOn:
             print ('The system is currently playing')
-            playing = False
-            cmd = 'mpc stop'
+            MpdState.sendCommand('stop')
         else:
-            print ('The system is not playing')
-            playing = True
-            cmd = 'mpc play'
+            MpdState.sendCommand('pause')
     else:
-        cmd = 'mpc toggle'
-
-    print ("Command will be send: " + cmd)
-    os.system(cmd)
-
+        print ('The system is not playing')
+        MpdState.play()
+    
 def button_track_next(channel):
-    cmd ='mpc next'
-    print ("Command will be send: " + cmd)
-    os.system(cmd)
+    MpdState.sendCommand('next')
 
 def button_track_prev(channel):
-    cmd ='mpc cdprev'
-    print ("Command will be send: " + cmd)
-    os.system(cmd)
-
+    MpdState.sendCommand('previous')
+    
 GPIO.setmode(GPIO.BOARD) 
 
 BUTTON_VOLUME_UP    = 18
@@ -182,11 +161,9 @@ def read_card(reader, key):
 
 def main():
     time.sleep(2)
-    if not isPlaying():
-        os.system('mpc clear')
-        os.system('mpc volume 30')
-        os.system('mpc insert ".system/Leg eine Karte auf.mp3"')
-        os.system('mpc play')
+    playing, radioOn  = MpdState.isPlaying()
+    if not playing:
+        MpdState.sendCommands(['clear', 'add ".system/Leg eine Karte auf.mp3"', 'play'])
 
     try:
         reader = MFRC522.MFRC522()
@@ -203,32 +180,32 @@ def main():
             cardData = read_card(reader, key) 
             if cardData != None:
                 (data4, data5) = cardData
-                random = data4[6] == 1 
+                if data4[6] == 1:
+                    randomCmd = "random 1"
+                else:
+                    randomCmd = "random 0"
+
+                playlistName = None
+
                 if data4[4] == 1:
-                    os.system("mpc stop")
-                    os.system("mpc clear")
-                    cmd = 'mpc load ' + "{:02d}".format(data4[5]) 
-                    os.system(cmd)
+                    playlistName = "{:02d}".format(data4[5])
+#                    os.system("mpc stop")
+#                    os.system("mpc clear")
+#                    cmd = 'mpc load ' + "{:02d}".format(data4[5]) 
+#                    os.system(cmd)
                     
                 if data4[4] == 2 :
                     if data5 == None:
                         lastCardUID = None
                     else :
-                        playlistname = ""
+                        playlistName = ""
                         for c in data5:
                             if c != 0:
-                                playlistname += chr(c)
-                        os.system("mpc stop")
-                        os.system("mpc clear")
-                        cmd = 'mpc load ' + playlistname
-                        os.system(cmd)
+                                playlistName += chr(c)
+
                 
-                if random:
-                    os.system('mpc random on')
-                else:
-                    os.system('mpc random off')
-                os.system('mpc play')
-                
+                if playlistName != None:
+                    MpdState.sendCommands(['stop', 'clear', 'load ' + playlistName, randomCmd, 'play'])
                 
     
     except KeyboardInterrupt:
