@@ -10,11 +10,8 @@ take a look to the open pull-requests and forks to see other implementations and
 This code requires you to have SPI-Py installed from the following repository:
 https://github.com/lthiery/SPI-Py
 
-To install SPI you have to use a special branch version 8cce26b9ee6e69eb041e9d5665944b88688fca68
-
 ```
 git clone https://github.com/lthiery/SPI-Py.git
-git checkout -b 8cce26b9ee6e69eb041e9d5665944b88688fca68
 sudo python setup.py install
 ```
 
