@@ -27,6 +27,7 @@ def button_volume_down(channel):
 def button_pause_down(channel):
     global pauseDown
     pauseDown = pauseDown + 1
+    print("Pause Pressed")
     
 def button_track_next(channel):
     MpdState.sendCommand('next')

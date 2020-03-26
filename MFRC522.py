@@ -310,7 +310,7 @@ class MFRC522:
     (status, backData, backLen) = self.MFRC522_ToCard(self.PCD_TRANSCEIVE, buf)
     
     if (status == self.MI_OK) and (backLen == 0x18):
-      print "Size: " + str(backData[0])
+      print ("Size: " + str(backData[0]))
       return    backData[0]
     else:
       return 0
@@ -407,7 +407,7 @@ class MFRC522:
   def MFRC522_Init(self):
     GPIO.output(self.NRSTPD, 1)
   
-    self.MFRC522_Reset();
+    self.MFRC522_Reset()
     
     
     self.Write_MFRC522(self.TModeReg, 0x8D)
