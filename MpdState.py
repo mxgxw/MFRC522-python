@@ -15,6 +15,15 @@ def readState():
     result = result + tn.read_until('OK'.encode('UTF-8'), 5).decode('UTF-8')
     
     return result.split('\n')
+
+def readPlaylist():
+    tn = Telnet('localhost', 6600)
+    tn.read_until('OK'.encode('UTF-8'), 5).decode('UTF-8')
+
+    tn.write('listplaylists\n'.encode('UTF-8'))
+
+    result = tn.read_until('OK'.encode('UTF-8'), 5).decode('UTF-8')
+    return result.split('\n')
     
 def sendCommand(cmd):
     sendCommands([cmd])

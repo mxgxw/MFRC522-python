@@ -1,0 +1,34 @@
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>RFID Radio</title>
+        <script src="jquery-3.4.1.min.js"></script>
+        <script src='main.js'></script>
+    </head>
+    <body>
+        <h1>RFID Radio</h1>
+        <p>Setup an RFID card</p> 
+        <form id="cardIdForm">
+            <label for="playlist">Playlist name:</label>
+            <select id="playlist" onload="myFunction()" name="playlist"></select>
+            <p>Random:</p>
+            <fieldset>
+              <input required type="radio" id="randomOn" name="random" value="True">
+              <label for="randomOn"> Yes</label> 
+              <input required type="radio" id="randomOff" name="random" value="False">
+              <label for="randomOff"> No</label>
+            </fieldset>
+            
+            <input  type = "submit" value = "Submit"/>
+        </form> 
+    </body>
+    <script>
+        $("#cardIdForm" ).submit(function( e ) {
+            e.preventDefault();
+            $.post( "/cgi-bin/createCardConfig.py", $( "#cardIdForm" ).serialize(), function( data ) {
+                console.log( $( "#cardIdForm" ).serialize() ); // John
+                alert("worked");
+            }, "json");
+        });
+    </script>
+</html>

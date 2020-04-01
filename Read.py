@@ -3,12 +3,14 @@ import RPi.GPIO as GPIO
 import MFRC522
 import os
 import time
-import subprocess
 import MpdState
+import configparser
 
-from subprocess import STDOUT
+from HttpServer import RadioHttpServer
+from threading import Thread
 
-WRITE_CARD_FILE = "/home/pi/radio/conf/writeCard"
+
+WRITE_CARD_FILE = "/var/run/radioControl/writeCard"
 
 buttonDebounceTime = 500
 
@@ -113,17 +115,28 @@ def read_card(reader, key):
 
     if os.path.isfile(WRITE_CARD_FILE):
         print (WRITE_CARD_FILE)
-        fobj = open(WRITE_CARD_FILE)
-        playlist = fobj.readline().strip()
-        fobj.close()
-        
+
+        config = configparser.RawConfigParser()
+        config.read(WRITE_CARD_FILE)
+
+        playlist = config.get('Card', 'playlist')       
+        random = config.get('Card', 'random')
+
+#        fobj = open(WRITE_CARD_FILE)
+#        playlist = fobj.readline().strip()
+#        fobj.close()
+
         print ("Playlist name is " + playlist)
 
         writeData = [int("0x13", 0), int("0x37", 0), int("0xb3", 0), int("0x47", 0)]
 
         writeData.append(2) # Version 2
         writeData.append(0) # For version it was the  folder
-        writeData.append(0) # Random value
+        
+        if(random.lower() in ['true', '1', 't', 'y', 'yes']):
+            writeData.append(1) # Random value
+        else:
+            writeData.append(0)
 
         # Fill the data with 0xFF
         for x in range(7,16):
@@ -158,7 +171,10 @@ def read_card(reader, key):
     return (data4, data5)
 
 def main():
-    global volumeUp, volumeDown, pauseDown
+    httpServer = RadioHttpServer("/home/pi/MFRC522-RadioControl/www")
+    httpServerThread = Thread(target = httpServer.startHttpServer, args = (10, ))
+    httpServerThread.start()
+    global volumeUp, volumeDown, pauseDown, lastCardUID
 
     time.sleep(2)
     playing, radioOn  = MpdState.isPlaying()
@@ -234,6 +250,7 @@ def main():
         print ("Ctrl+C captured, ending read.")
     finally:
         GPIO.cleanup()
+        httpServer.stopHttpServer()
 
 
 if __name__ == '__main__':
