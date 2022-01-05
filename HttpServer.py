@@ -5,7 +5,7 @@ import CGIHTTPServer
 import os
 import cgitb; cgitb.enable()  ## This line enables CGI error reporting
  
-HTTP_SERVER_PORT = 80
+HTTP_SERVER_PORT = 8080
 
 class RadioHttpServer:
 

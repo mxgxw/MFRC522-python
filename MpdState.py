@@ -59,8 +59,8 @@ def setVolume(newVolume):
     if newVolume < 0:
         newVolume = 0
     
-    if newVolume > 100:
-        newVolume = 100
+    if newVolume > 60:
+        newVolume = 60
 
     sendCommand('setvol ' + str(newVolume))
     print("Current Volume is now " + str(currentVolume()))

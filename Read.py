@@ -177,11 +177,11 @@ def main():
     global volumeUp, volumeDown, pauseDown, lastCardUID
 
     time.sleep(2)
-    playing, radioOn  = MpdState.isPlaying()
-    if not playing:
-        MpdState.sendCommands(['setvol 20', 'clear', 'add ".system/Leg eine Karte auf.mp3"', 'play'])
-
     try:
+	playing, radioOn  = MpdState.isPlaying()
+    	if not playing:
+        	MpdState.sendCommands(['setvol 20', 'clear', 'add "file:///home/pi/Radio/music/.system/Leg%20eine%20Karte%20auf.mp3"', 'play'])
+
         reader = MFRC522.MFRC522()
 
         # Welcome message
