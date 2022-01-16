@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import RPi.GPIO as GPIO
 import MFRC522
 import os

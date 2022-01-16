@@ -1,6 +1,4 @@
-#!/usr/bin/env python
- 
-import BaseHTTPServer
+#!/usr/bin/env python3
 import CGIHTTPServer
 import os
 import cgitb; cgitb.enable()  ## This line enables CGI error reporting
@@ -18,7 +16,7 @@ class RadioHttpServer:
         os.chdir(web_dir)
 
         print ("Staring HTTP server on port " + str(HTTP_SERVER_PORT))
-        self.server = BaseHTTPServer.HTTPServer
+        self.server = http.server.HTTPServer
         handler = CGIHTTPServer.CGIHTTPRequestHandler
         server_address = ("", HTTP_SERVER_PORT)
         handler.cgi_directories = ["/cgi-bin"]
