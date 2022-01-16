@@ -171,7 +171,7 @@ def read_card(reader, key):
     return (data4, data5)
 
 def main():
-    httpServer = RadioHttpServer("/home/pi/MFRC522-RadioControl/www")
+    httpServer = RadioHttpServer("./MFRC522-RadioControl/www")
     httpServerThread = Thread(target = httpServer.startHttpServer, args = (10, ))
     httpServerThread.start()
     global volumeUp, volumeDown, pauseDown, lastCardUID
@@ -180,7 +180,7 @@ def main():
     try:
         playing, radioOn  = MpdState.isPlaying()
         if not playing:
-            MpdState.sendCommands(['setvol 20', 'clear', 'add "file:///home/pi/Radio/music/.system/Leg%20eine%20Karte%20auf.mp3"', 'play'])
+            MpdState.sendCommands(['setvol 20', 'clear', 'add ".system/Leg%20eine%20Karte%20auf.mp3"', 'play'])
 
         reader = MFRC522.MFRC522()
 
