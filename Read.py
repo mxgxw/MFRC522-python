@@ -171,7 +171,7 @@ def read_card(reader, key):
     return (data4, data5)
 
 def main():
-    httpServer = RadioHttpServer("/www")
+    httpServer = RadioHttpServer("www")
     httpServerThread = Thread(target = httpServer.startHttpServer, args = (10, ))
     httpServerThread.start()
     global volumeUp, volumeDown, pauseDown, lastCardUID
