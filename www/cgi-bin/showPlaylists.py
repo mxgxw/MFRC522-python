@@ -12,8 +12,8 @@ def readPlaylist():
     listResult = []
     for s in result.split('\n'):
         if 'playlist: ' in s and '[Radio Streams]' not in s:
-            listResult.append( str(s[10:]))
-    listResult = sorted(listResult, key=str.lower)
+            listResult.append( s[10:])
+    listResult = sorted(listResult)
     return listResult
 
 print 'Content-type: application/json'
@@ -26,7 +26,6 @@ for s in readPlaylist():
     if firstEntry:
         firstEntry = False
     else:
-        print ',',
-    print '"' + s + '"',
-
+        print ','
+    print '"' + s.encode('utf-8') + '"'
 print (']}')
