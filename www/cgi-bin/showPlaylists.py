@@ -18,6 +18,7 @@ def readPlaylist():
 
 print ('Content-type: application/json\r\n\r\n')
 
+
 #print ('{"playlists": ["Test", "Test1", "Test2"]}')
 print ('{"playlists": [')
 firstEntry = True
