@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from telnetlib import Telnet
 
@@ -16,16 +16,16 @@ def readPlaylist():
     listResult = sorted(listResult)
     return listResult
 
-print 'Content-type: application/json'
-print
-#print '{"playlists": ["bla", "bla2", "bla3"]}'
+print ('Content-type: application/json\r\n\r\n')
 
+#print ('{"playlists": ["Test", "Test1", "Test2"]}')
 print ('{"playlists": [')
 firstEntry = True
 for s in readPlaylist():
     if firstEntry:
         firstEntry = False
     else:
-        print ','
-    print '"' + s.encode('utf-8') + '"'
+        print (',')
+    #print ('"Blabla"')
+    print(f"\"{s}\"")
 print (']}')

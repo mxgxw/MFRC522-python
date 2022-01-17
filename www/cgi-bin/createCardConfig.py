@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
  
 import cgi
 import configparser
@@ -25,10 +25,10 @@ config.set('Card', 'random', str(random))
 with open(WRITE_CARD_FILE, 'wb') as configfile:
     config.write(configfile)
 
-print str(form)
+print (str(form))
 
-print 'Content-type: text/html' 
+print ('Content-type: text/html')
 print
-print '<html><head><title>Test URL Encoding</title></head><body>'
-print 'Hello my name is %s %s' % (playlist, random)
-print '</body></html>' 
+print ('<html><head><title>Test URL Encoding</title></head><body>')
+print ('Hello my name is %s %s' % (playlist, random))
+print ('</body></html>')
