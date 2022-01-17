@@ -16,7 +16,7 @@ def readPlaylist():
     listResult = sorted(listResult)
     return listResult
 
-print 'Content-type: application/json'
+print ('Content-type: application/json')
 print
 #print '{"playlists": ["bla", "bla2", "bla3"]}'
 
@@ -26,6 +26,6 @@ for s in readPlaylist():
     if firstEntry:
         firstEntry = False
     else:
-        print ','
-    print '"' + s.encode('utf-8') + '"'
+        print (',')
+    print ('"' + s.encode('utf-8') + '"')
 print (']}')
