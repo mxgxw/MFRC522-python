@@ -5,7 +5,7 @@ import configparser
 import logging
 import os
 
-WRITE_CARD_FILE = "/var/run/radioControl/writeCard"
+WRITE_CARD_FILE = "writeCard"
 
 form = cgi.FieldStorage()
  
@@ -22,7 +22,7 @@ config.set('Card', 'random', str(random))
 
 # Writing our configuration file to 'example.cfg'
 
-with open(WRITE_CARD_FILE, 'wb') as configfile:
+with open(WRITE_CARD_FILE, 'w') as configfile:
     config.write(configfile)
 
 print (str(form))
